@@ -17,6 +17,18 @@ int gen_ast(ASTNode *n, int reg) {
             return cg_mult(left_reg, right_reg);
         case A_DIVIDE:
             return cg_div(left_reg, right_reg);
+        case A_EQ:
+            return cg_equal(left_reg, right_reg);
+        case A_NEQ:
+            return cg_not_equal(left_reg, right_reg);
+        case A_LT:
+            return cg_less_than(left_reg, right_reg);
+        case A_GT:
+            return cg_greater_than(left_reg, right_reg);
+        case A_LE:
+            return cg_less_than_or_equal_to(left_reg, right_reg);
+        case A_GE:
+            return cg_greater_than_or_equal_to(left_reg, right_reg);
         case A_INTLIT:
             return cg_load_int(n->v.int_value);
         case A_IDENT:

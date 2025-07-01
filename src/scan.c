@@ -20,24 +20,62 @@ int scan(Token *t) {
         case EOF:
             t->type = T_EOF;
             return 0;
+
         case '+':
             t->type = T_PLUS;
             break;
+
         case '-':
             t->type = T_MINUS;
             break;
+
         case '*':
             t->type = T_STAR;
             break;
+
         case '/':
             t->type = T_SLASH;
             break;
+
         case ';':
             t->type = T_SEMI;
             break;
+
         case '=':
-            t->type = T_EQUALS;
+            if ((c = next()) == '=') {
+                t->type = T_EQ;
+            } else {
+                putback(c);
+                t->type = T_ASSIGN;
+            }
             break;
+
+        case '!':
+            if ((c = next()) == '=') {
+                t->type = T_NEQ;
+            } else {
+                fatal_char("Unrecognized character:", c);
+            }
+            break;
+
+        case '<':
+            if ((c = next()) == '=') {
+                t->type = T_LE;
+            } else {
+                putback(c);
+                t->type = T_LT;
+            }
+            break;
+
+        case '>':
+            if ((c = next()) == '=') {
+                t->type = T_GE;
+            } else {
+                putback(c);
+                t->type = T_GT;
+            }
+            break;
+
         default:
             if isdigit(c) {
                 t->int_value = scan_int(c);

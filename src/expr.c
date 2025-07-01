@@ -2,6 +2,42 @@
 #include "../include/data.h"
 #include "../include/decl.h"
 
+static ASTNode *primary();
+static int token_to_operator(int type);
+static int op_precedence(int token_type);
+
+// Precedence for each token type
+static int operator_precedence[] = {
+    0,                  // EOF
+    10, 10,             // ADD, SUB 
+    20, 20,             // MUL, DIV
+    30, 30,             // EQ, NEQ 
+    40, 40, 40, 40,     // LT, GT, LE, GE 
+};
+    
+ASTNode *binary_expression(int ptp) {
+    ASTNode *left, *right;
+    int token_type;
+
+    left = primary();
+    token_type = g_token.type; 
+    if (g_token.type == T_SEMI) {
+        return left;
+    }
+
+    while (op_precedence(token_type) > ptp) {
+        scan(&g_token);
+        right = binary_expression(operator_precedence[token_type]);
+        left = make_ast_node(token_to_operator(token_type), left, right, 0);
+        token_type = g_token.type;
+        if (g_token.type == T_SEMI) {
+            return left;
+        }
+    }
+
+    return left;
+}
+
 // parse a primary factor.
 static ASTNode *primary() {
     ASTNode *n;
@@ -38,14 +74,23 @@ static int token_to_operator(int type) {
             return A_MULTIPLY;
         case T_SLASH:
             return A_DIVIDE;
+        case T_EQ:
+            return A_EQ;
+        case T_NEQ:
+            return A_NEQ;
+        case T_LT:
+            return A_LT;
+        case T_GT:
+            return A_GT;
+        case T_LE:
+            return A_LE;
+        case T_GE:
+            return A_GE;
         default:
             fprintf(stderr, "Unknown token in token_to_operator() on line %d\n", g_line);
             exit(1);
     }
 }
-
-// Precedence for each token type
-static int operator_precedence[] = {0, 10, 10, 20, 20, 0};
 
 static int op_precedence(int token_type) {
     int prec = operator_precedence[token_type];
@@ -55,27 +100,4 @@ static int op_precedence(int token_type) {
     }
 
     return prec;
-}
-
-ASTNode *binary_expression(int ptp) {
-    ASTNode *left, *right;
-    int token_type;
-
-    left = primary();
-    token_type = g_token.type; 
-    if (g_token.type == T_SEMI) {
-        return left;
-    }
-
-    while (op_precedence(token_type) > ptp) {
-        scan(&g_token);
-        right = binary_expression(operator_precedence[token_type]);
-        left = make_ast_node(token_to_operator(token_type), left, right, 0);
-        token_type = g_token.type;
-        if (g_token.type == T_SEMI) {
-            return left;
-        }
-    }
-
-    return left;
 }

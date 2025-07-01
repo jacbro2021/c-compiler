@@ -4,9 +4,11 @@
 
 static int alloc_register();
 static void free_register(int r);
+static int cg_compare(int r1, int r2, char *how);
 
 static int free_reg[4];
-static char *reg_list[4] = { "%r8", "%r9", "%r11", "%r11"};
+static char *reg_list[4] = { "%r8", "%r9", "%r10", "%r11" };
+static char *breg_list[4] = { "%r8b", "%r9b", "%r10b", "%r11b" };
 
 void free_all_registers() {
     free_reg[0] = 1;
@@ -91,6 +93,30 @@ int cg_div(int r1, int r2) {
     return r1;
 }
 
+int cg_equal(int r1, int r2) {
+    return cg_compare(r1, r2, "sete");
+}
+
+int cg_not_equal(int r1, int r2) {
+    return cg_compare(r1, r2, "setne");
+}
+
+int cg_less_than(int r1, int r2) {
+    return cg_compare(r1, r2, "setl");
+}
+
+int cg_greater_than(int r1, int r2) {
+    return cg_compare(r1, r2, "setg");
+}
+ 
+int cg_less_than_or_equal_to(int r1, int r2) {
+    return cg_compare(r1, r2, "setle");
+}
+
+int cg_greater_than_or_equal_to(int r1, int r2) {
+    return cg_compare(r1, r2, "setge");
+}
+
 void cg_print_int(int r) {
     fprintf(g_outfile, "\tmovq\t%s, %%rdi\n", reg_list[r]);
     fprintf(g_outfile, "\tcall\tprintint\n");
@@ -122,4 +148,12 @@ static void free_register(int r) {
     }
 
     free_reg[r] = 1;
+}
+
+static int cg_compare(int r1, int r2, char *how) {
+    fprintf(g_outfile, "\tcmpq\t%s, %s\n", reg_list[r2], reg_list[r1]);
+    fprintf(g_outfile, "\t%s\t%s\n", how, breg_list[r2]);
+    fprintf(g_outfile, "\tandq\t$255, %s\n", reg_list[r2]);
+    free_register(r1);
+    return r2;
 }
