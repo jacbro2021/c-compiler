@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# RED='\033[0;31m'
+# GREEN='\033[0;32m'
+# NC='\033[0m' # No Color
+
+# for test_file in ./test/test*; do
+#     test_name=$(basename "$test_file")
+    
+#     echo -e "${GREEN}EXECUTING ${test_name^^}${NC}"
+#     echo " "
+    
+#     # Run commands and catch errors
+#     if ./build/compiler "$test_file" && gcc out.s && ./a.out; then
+#         echo " "
+#         echo -e "${GREEN}${test_name^^} PASSED${NC}"
+#         echo " "
+#     else
+#         echo " "
+#         echo -e "${RED}${test_name^^} FAILED${NC}"
+#         exit 1
+#     fi
+# done
+
+#!/bin/bash
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+for test_file in ./test/test*; do
+    test_name=$(basename "$test_file")   # test1
+    test_num="${test_name//[!0-9]/}"     # Extract digits: 1, 2, ...
+    expected_output_file="./test/out${test_num}"
+
+    # echo -e "${GREEN}EXECUTING ${test_name^^}${NC}"
+    # echo " "
+
+    # Run compiler, assemble, and execute, capturing output
+    if ./build/compiler "$test_file" && gcc out.s -o out_exec; then
+        actual_output=$(./out_exec)
+        expected_output=$(<"$expected_output_file")
+
+        if [[ "$actual_output" == "$expected_output" ]]; then
+            # echo " "
+            echo -e "${GREEN}${test_name^^} PASSED${NC}"
+            # echo " "
+        else
+            echo " "
+            echo -e "${RED}${test_name^^} FAILED: Output does not match expected${NC}"
+            echo -e "${RED}Expected:\n${NC}$expected_output"
+            echo -e "${RED}Got:\n${NC}$actual_output"
+            exit 1
+        fi
+    else
+        echo " "
+        echo -e "${RED}${test_name^^} FAILED: Compilation or execution error${NC}"
+        exit 1
+    fi
+done

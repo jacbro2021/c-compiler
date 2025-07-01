@@ -1,0 +1,13 @@
+int fred;
+int jim;
+fred= 5;
+jim= 12;
+print fred + jim;
+
+int tom;
+int joe;
+int jacob;
+tom = 4;
+joe = 2;
+jacob = tom / joe;
+print jacob;
