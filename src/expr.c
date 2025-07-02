@@ -21,16 +21,16 @@ ASTNode *binary_expression(int ptp) {
 
     left = primary();
     token_type = g_token.type; 
-    if (g_token.type == T_SEMI) {
+    if (g_token.type == T_SEMI || g_token.type == T_RPAREN) {
         return left;
     }
 
     while (op_precedence(token_type) > ptp) {
         scan(&g_token);
         right = binary_expression(operator_precedence[token_type]);
-        left = make_ast_node(token_to_operator(token_type), left, right, 0);
+        left = make_ast_node(token_to_operator(token_type), left, NULL, right, 0);
         token_type = g_token.type;
-        if (g_token.type == T_SEMI) {
+        if (g_token.type == T_SEMI || g_token.type == T_RPAREN) {
             return left;
         }
     }

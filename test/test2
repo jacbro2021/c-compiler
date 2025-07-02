@@ -1,4 +1,4 @@
-int fred;
+{int fred;
 int jim;
 fred= 5;
 jim= 12;
@@ -11,3 +11,4 @@ tom = 4;
 joe = 2;
 jacob = tom / joe;
 print jacob;
+}

@@ -93,29 +93,29 @@ int cg_div(int r1, int r2) {
     return r1;
 }
 
-int cg_equal(int r1, int r2) {
-    return cg_compare(r1, r2, "sete");
-}
+// int cg_equal(int r1, int r2) {
+//     return cg_compare(r1, r2, "sete");
+// }
 
-int cg_not_equal(int r1, int r2) {
-    return cg_compare(r1, r2, "setne");
-}
+// int cg_not_equal(int r1, int r2) {
+//     return cg_compare(r1, r2, "setne");
+// }
 
-int cg_less_than(int r1, int r2) {
-    return cg_compare(r1, r2, "setl");
-}
+// int cg_less_than(int r1, int r2) {
+//     return cg_compare(r1, r2, "setl");
+// }
 
-int cg_greater_than(int r1, int r2) {
-    return cg_compare(r1, r2, "setg");
-}
+// int cg_greater_than(int r1, int r2) {
+//     return cg_compare(r1, r2, "setg");
+// }
  
-int cg_less_than_or_equal_to(int r1, int r2) {
-    return cg_compare(r1, r2, "setle");
-}
+// int cg_less_than_or_equal_to(int r1, int r2) {
+//     return cg_compare(r1, r2, "setle");
+// }
 
-int cg_greater_than_or_equal_to(int r1, int r2) {
-    return cg_compare(r1, r2, "setge");
-}
+// int cg_greater_than_or_equal_to(int r1, int r2) {
+//     return cg_compare(r1, r2, "setge");
+// }
 
 void cg_print_int(int r) {
     fprintf(g_outfile, "\tmovq\t%s, %%rdi\n", reg_list[r]);
@@ -130,6 +130,39 @@ int cg_store_glob(int r, char *identifier) {
 
 void cg_glob_sym(char *sym) {
     fprintf(g_outfile, "\t.comm\t%s,8,8\n", sym);
+}
+
+static char *cmp_list[] = { "sete", "setne", "setl", "setg", "setle", "setge" };
+int cg_compare_and_set(int ast_op, int r1, int r2) {
+    if (ast_op < A_EQ || ast_op > A_GE) {
+        fatal("Invalid AST operation in cg_compare_and_set");
+    }
+
+    fprintf(g_outfile, "\tcmpq\t%s, %s\n", reg_list[r2], reg_list[r1]);
+    fprintf(g_outfile, "\t%s\t%s\n", cmp_list[ast_op - A_EQ], breg_list[r2]);
+    fprintf(g_outfile, "\tmovzbq\t%s, %s\n", breg_list[r2], reg_list[r2]);
+    free_register(r1);
+    return r2;
+}
+
+static char *inverted_cmp_list[] = { "jne", "je", "jge", "jle", "jg", "jl" };
+int cg_compare_and_jump(int ast_op, int r1, int r2, int label) {
+    if (ast_op < A_EQ || ast_op > A_GE) {
+        fatal("Invalid AST operation in cg_compare_and_jump");
+    }
+
+    fprintf(g_outfile, "\tcmpq\t%s, %s\n", reg_list[r2], reg_list[r1]);
+    fprintf(g_outfile, "\t%s\tL%d\n", inverted_cmp_list[ast_op - A_EQ], label);
+    free_all_registers();
+    return NOREG;
+}
+
+void cg_jump(int l) {
+    fprintf(g_outfile, "\tjmp\tL%d\n", l);
+}
+
+void cg_label(int l) {
+    fprintf(g_outfile, "L%d:\n", l);
 }
 
 static int alloc_register() {

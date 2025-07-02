@@ -1,16 +1,16 @@
 // Function protoypes.
 
 int scan(Token *t);
-ASTNode *make_ast_node(int op, ASTNode *left, ASTNode *right, int int_value);
+ASTNode *make_ast_node(int op, ASTNode *left, ASTNode *mid, ASTNode *right, int int_value);
 ASTNode *make_ast_leaf(int op, int int_value);
 ASTNode *make_ast_unary(int op, ASTNode *left, int int_value);
 ASTNode *binary_expression();
 
-void statements();
+ASTNode *compound_statement();
 
 int interpret_ast(ASTNode *n);
 
-int gen_ast(ASTNode *n, int reg);
+int gen_ast(ASTNode *n, int reg, int parent_ast_op);
 void gen_preamble();
 void gen_postamble();
 void gen_free_regs();
@@ -26,19 +26,27 @@ int cg_add(int r1, int r2);
 int cg_sub(int r1, int r2);
 int cg_mult(int r1, int r2);
 int cg_div(int r1, int r2);
-int cg_equal(int r1, int r2);
-int cg_not_equal(int r1, int r2);
-int cg_less_than(int r1, int r2);
-int cg_greater_than(int r1, int r2);
-int cg_less_than_or_equal_to(int r1, int r2);
-int cg_greater_than_or_equal_to(int r1, int r2);
+// int cg_equal(int r1, int r2);
+// int cg_not_equal(int r1, int r2);
+// int cg_less_than(int r1, int r2);
+// int cg_greater_than(int r1, int r2);
+// int cg_less_than_or_equal_to(int r1, int r2);
+// int cg_greater_than_or_equal_to(int r1, int r2);
 void cg_print_int(int r);
 int cg_store_glob(int register, char* identifier);
 void cg_glob_sym(char *sym);
+int cg_compare_and_set(int ast_op, int r1, int r2);
+int cg_compare_and_jump(int ast_op, int r1, int r2, int label);
+void cg_jump(int l);
+void cg_label(int l);
 
 void match(int i, char *what);
 void semi();
 void ident();
+void lbrace();
+void rbrace();
+void lparen();
+void rparen();
 
 void var_declaration();
 

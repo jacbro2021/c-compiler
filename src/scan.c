@@ -76,6 +76,22 @@ int scan(Token *t) {
             }
             break;
 
+        case '{':
+            t->type = T_LBRACE;
+            break;
+
+        case '}':
+            t->type = T_RBRACE;
+            break;
+
+        case '(':
+            t->type = T_LPAREN;
+            break;
+
+        case ')':
+            t->type = T_RPAREN;
+            break;
+
         default:
             if isdigit(c) {
                 t->int_value = scan_int(c);
@@ -165,9 +181,19 @@ static int keyword(char *s) {
             return T_PRINT;
         }
         break;
+
     case 'i':
         if (!strcmp(s, "int")) {
             return T_INT;
+        } 
+        if (!strcmp(s, "if")) {
+            return T_IF;
+        }
+        break;
+    
+    case 'e':
+        if (!strcmp(s, "else")) {
+            return T_ELSE;
         }
         break;
     }

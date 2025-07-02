@@ -18,6 +18,22 @@ void ident() {
     match(T_IDENT, "identifier");
 }
 
+void lbrace() {
+    match(T_LBRACE, "{");
+}
+
+void rbrace() {
+    match(T_RBRACE, "}");
+}
+
+void lparen() {
+    match(T_LPAREN, "(");
+}
+
+void rparen() {
+    match(T_RPAREN, ")");
+}
+
 // Error handling functions.
 void fatal(char *s) {
     fprintf(stderr, "%s: fatal error on line %d\n", s, g_line);

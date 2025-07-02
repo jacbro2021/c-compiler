@@ -2,41 +2,71 @@
 #include "../include/data.h"
 #include "../include/decl.h"
 
-int gen_ast(ASTNode *n, int reg) {
+static int gen_if_ast();
+static int gen_label();
+
+int gen_ast(ASTNode *n, int reg, int parent_ast_op) {
     int left_reg, right_reg;
 
-    if (n->left) left_reg = gen_ast(n->left, -1);
-    if (n->right) right_reg = gen_ast(n->right, left_reg);
+    // special AST handling for if and glue
+    switch (n->op) {
+        case A_IF:
+            return gen_if_ast(n);
+
+        case A_GLUE:
+            gen_ast(n->left, NOREG, n->op);
+            gen_free_regs();
+            gen_ast(n->right, NOREG, n->op);
+            gen_free_regs();
+            return NOREG;
+    }
+
+    // generic AST handling
+    if (n->left) left_reg = gen_ast(n->left, NOREG, n->op);
+    if (n->right) right_reg = gen_ast(n->right, left_reg, n->op);
 
     switch (n->op) {
         case A_ADD:
             return cg_add(left_reg, right_reg);
+
         case A_SUBTRACT:
             return cg_sub(left_reg, right_reg);
+
         case A_MULTIPLY:
             return cg_mult(left_reg, right_reg);
+
         case A_DIVIDE:
             return cg_div(left_reg, right_reg);
+
         case A_EQ:
-            return cg_equal(left_reg, right_reg);
         case A_NEQ:
-            return cg_not_equal(left_reg, right_reg);
         case A_LT:
-            return cg_less_than(left_reg, right_reg);
         case A_GT:
-            return cg_greater_than(left_reg, right_reg);
         case A_LE:
-            return cg_less_than_or_equal_to(left_reg, right_reg);
         case A_GE:
-            return cg_greater_than_or_equal_to(left_reg, right_reg);
+            if (parent_ast_op == A_IF) {
+                return cg_compare_and_jump(n->op, left_reg, right_reg, reg);
+            } else {
+                return cg_compare_and_set(n->op, left_reg, right_reg);
+            }
+
         case A_INTLIT:
             return cg_load_int(n->v.int_value);
+
         case A_IDENT:
             return cg_load_glob(g_sym[n->v.id].name);
+
         case A_LVIDENT:
             return cg_store_glob(reg, g_sym[n->v.id].name);
+
         case A_ASSIGN:
             return right_reg;
+
+        case A_PRINT:
+            gen_print_int(left_reg);
+            gen_free_regs();
+            return NOREG;
+
         default:
             fatal_int("Unknown AST operator", n->op);
     }
@@ -60,4 +90,37 @@ void gen_print_int(int r) {
 
 void gen_glob_sym(char *s) {
     cg_glob_sym(s);
+}
+
+static int gen_if_ast(ASTNode *n) {
+    int false_label, end_label;
+
+    false_label = gen_label();
+    if (n->right) {
+        end_label = gen_label();
+    }
+
+    gen_ast(n->left, false_label, n->op);
+    gen_free_regs();
+
+    gen_ast(n->mid, NOREG, n->op);
+
+    if (n->right) {
+        cg_jump(end_label);
+    }
+
+    cg_label(false_label);
+
+    if (n->right) {
+        gen_ast(n->right, NOREG, n->op);
+        gen_free_regs();
+        cg_label(end_label);
+    }
+
+    return NOREG;
+}
+
+static int gen_label() {
+    static int id=1;
+    return id++;
 }

@@ -25,9 +25,12 @@ int main(int argc, char** argv) {
     }
 
     scan(&g_token);
+
     gen_preamble();
-    statements();
+    ASTNode *tree = compound_statement();
+    gen_ast(tree, NOREG, 0);
     gen_postamble();
+
     fclose(g_outfile);
     fclose(g_infile);
 
