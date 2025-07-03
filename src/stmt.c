@@ -2,10 +2,12 @@
 #include "../include/data.h"
 #include "../include/decl.h"
 
+static ASTNode *single_statement();
 static ASTNode *print_statement();
 static ASTNode *assignment_statement();
 static ASTNode *if_statement();
 static ASTNode *while_statement();
+static ASTNode *for_statement();
 
 ASTNode *compound_statement() {
     ASTNode *left = NULL;
@@ -14,35 +16,13 @@ ASTNode *compound_statement() {
     lbrace();
 
     while (1) {
-        switch (g_token.type) {
-        case T_PRINT:
-            tree = print_statement();
-            break;
+        tree = single_statement();
 
-        case T_INT:
-            var_declaration();
-            tree = NULL;
-            break;
-
-        case T_IDENT:
-            tree = assignment_statement();
-            break;
-
-        case T_IF:
-            tree = if_statement();
-            break;
-
-        case T_WHILE:
-            tree = while_statement();
-            break;
-        
-        case T_RBRACE:
-            rbrace();
-            return left;
-
-        default:
-            fatal_int("Syntax error, token", g_token.type);
-        } 
+        if (tree) {
+            if (tree->op == A_PRINT || tree->op == A_ASSIGN) {
+                semi();
+            }
+        }
 
         if (tree) {
             if (left == NULL)  {
@@ -51,7 +31,38 @@ ASTNode *compound_statement() {
                 left = make_ast_node(A_GLUE, left, NULL, tree, 0);
             }
         }
+
+        if (g_token.type == T_RBRACE) {
+            rbrace();
+            return left;
+        }
     }
+}
+
+static ASTNode *single_statement() {
+    switch (g_token.type) {
+        case T_PRINT:
+            return print_statement();
+
+        case T_INT:
+            var_declaration();
+            return NULL;
+
+        case T_IDENT:
+            return assignment_statement();
+
+        case T_IF:
+            return if_statement();
+
+        case T_WHILE:
+            return while_statement();
+
+        case T_FOR:
+            return for_statement();
+
+        default:
+            fatal_int("Syntax error, token", g_token.type);
+    } 
 }
 
 static ASTNode *print_statement() {
@@ -60,7 +71,6 @@ static ASTNode *print_statement() {
     match(T_PRINT, "print");
     tree = binary_expression(0);
     tree = make_ast_unary(A_PRINT, tree, 0);
-    semi();
 
     return tree;
 }
@@ -80,8 +90,6 @@ static ASTNode *assignment_statement() {
 
     left = binary_expression(0);
     tree = make_ast_node(A_ASSIGN, left, NULL, right, 0);
-
-    semi();
 
     return tree;
 }
@@ -121,4 +129,29 @@ static ASTNode *while_statement() {
     true_node = compound_statement();
 
     return make_ast_node(A_WHILE, cond, NULL, true_node, 0);
+}
+
+static ASTNode *for_statement() {
+    ASTNode *assignment, *cond, *iteration_assignment, *body;
+
+    match(T_FOR, "for");
+    lparen();
+
+    assignment = single_statement();
+    semi();
+
+    cond = binary_expression(0);
+    if (cond->op < A_EQ || cond->op > A_GE) {
+        fatal("Bad comparison operator");
+    }
+    semi();
+
+    iteration_assignment = single_statement();
+    rparen();
+
+    body = compound_statement();
+
+    ASTNode *compound_body = make_ast_node(A_GLUE, body, NULL, iteration_assignment, 0);
+    ASTNode *while_node = make_ast_node(A_WHILE, cond, NULL, compound_body, 0);
+    return make_ast_node(A_GLUE, assignment, NULL, while_node, 0);
 }

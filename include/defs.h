@@ -20,7 +20,7 @@ enum {
     // No precedence
     T_INTLIT, T_SEMI, T_ASSIGN, T_IDENT,
     T_PRINT, T_INT, T_IF, T_ELSE,
-    T_WHILE,
+    T_WHILE, T_FOR,
 };
 
 typedef struct _Token {
