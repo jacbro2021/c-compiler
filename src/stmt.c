@@ -5,6 +5,7 @@
 static ASTNode *print_statement();
 static ASTNode *assignment_statement();
 static ASTNode *if_statement();
+static ASTNode *while_statement();
 
 ASTNode *compound_statement() {
     ASTNode *left = NULL;
@@ -29,6 +30,10 @@ ASTNode *compound_statement() {
 
         case T_IF:
             tree = if_statement();
+            break;
+
+        case T_WHILE:
+            tree = while_statement();
             break;
         
         case T_RBRACE:
@@ -100,4 +105,20 @@ static ASTNode *if_statement() {
     }
 
     return make_ast_node(A_IF, cond, true_node, false_node, 0);
+}
+
+static ASTNode *while_statement() {
+    ASTNode *cond, *true_node;
+
+    match(T_WHILE, "while");
+    lparen();
+    cond = binary_expression(0);
+    rparen();
+    if (cond->op < A_EQ || cond->op > A_GE) {
+        fatal("Invalid comparison operator");
+    }
+
+    true_node = compound_statement();
+
+    return make_ast_node(A_WHILE, cond, NULL, true_node, 0);
 }

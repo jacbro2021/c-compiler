@@ -176,9 +176,9 @@ static int scan_identifier(int c, char *buf, int lim) {
 
 static int keyword(char *s) {
     switch (*s) {
-    case 'p':
-        if (!strcmp(s, "print")) {
-            return T_PRINT;
+    case 'e':
+        if (!strcmp(s, "else")) {
+            return T_ELSE;
         }
         break;
 
@@ -190,10 +190,16 @@ static int keyword(char *s) {
             return T_IF;
         }
         break;
+
+    case 'p':
+        if (!strcmp(s, "print")) {
+            return T_PRINT;
+        }
+        break;
     
-    case 'e':
-        if (!strcmp(s, "else")) {
-            return T_ELSE;
+    case 'w':
+        if (!strcmp(s, "while")) {
+            return T_WHILE;
         }
         break;
     }

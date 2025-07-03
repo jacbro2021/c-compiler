@@ -3,6 +3,7 @@
 #include "../include/decl.h"
 
 static int gen_if_ast();
+static int gen_while_ast();
 static int gen_label();
 
 int gen_ast(ASTNode *n, int reg, int parent_ast_op) {
@@ -12,6 +13,9 @@ int gen_ast(ASTNode *n, int reg, int parent_ast_op) {
     switch (n->op) {
         case A_IF:
             return gen_if_ast(n);
+
+        case A_WHILE:
+            return gen_while_ast(n);
 
         case A_GLUE:
             gen_ast(n->left, NOREG, n->op);
@@ -44,7 +48,7 @@ int gen_ast(ASTNode *n, int reg, int parent_ast_op) {
         case A_GT:
         case A_LE:
         case A_GE:
-            if (parent_ast_op == A_IF) {
+            if (parent_ast_op == A_IF || parent_ast_op == A_WHILE) {
                 return cg_compare_and_jump(n->op, left_reg, right_reg, reg);
             } else {
                 return cg_compare_and_set(n->op, left_reg, right_reg);
@@ -118,6 +122,24 @@ static int gen_if_ast(ASTNode *n) {
     }
 
     return NOREG;
+}
+
+static int gen_while_ast(ASTNode *n) {
+    int start_label, end_label;
+
+    start_label = gen_label();
+    end_label = gen_label();
+
+    cg_label(start_label);
+
+    gen_ast(n->left, end_label, n->op);
+    gen_free_regs();
+
+    gen_ast(n->right, NOREG, n->op);
+    gen_free_regs();
+    cg_jump(start_label);
+
+    cg_label(end_label);
 }
 
 static int gen_label() {
