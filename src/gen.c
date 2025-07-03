@@ -23,6 +23,13 @@ int gen_ast(ASTNode *n, int reg, int parent_ast_op) {
             gen_ast(n->right, NOREG, n->op);
             gen_free_regs();
             return NOREG;
+        
+        case A_FUNCTION:
+            gen_function_preamble(g_sym[n->v.id].name);
+            gen_ast(n->left, NOREG, n->op);
+            gen_function_postamble();
+            gen_free_regs();
+            return NOREG;
     }
 
     // generic AST handling
@@ -82,6 +89,14 @@ void gen_preamble() {
 
 void gen_postamble() {
     cg_postamble();
+}
+
+void gen_function_preamble(char *name) {
+    cg_function_preamble(name);
+}
+
+void gen_function_postamble() {
+    cg_function_postamble();
 }
 
 void gen_free_regs() {

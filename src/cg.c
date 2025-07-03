@@ -37,12 +37,7 @@ void cg_preamble() {
         "\tnop\n"
         "\tleave\n"
         "\tret\n"
-        "\n"
-        "\t.globl\tmain\n"
-        "\t.type\tmain, @function\n"
-        "main:\n"
-        "\tpushq\t%rbp\n"
-        "\tmovq	%rsp, %rbp\n",
+        "\n",
     g_outfile);
 }
 
@@ -52,6 +47,24 @@ void cg_postamble() {
         "\tpopq	%rbp\n"
         "\tret\n",
     g_outfile);
+}
+
+void cg_function_preamble(char *name) {
+    fprintf(g_outfile,
+        "\t.text\n"
+        "\t.globl\t%s\n"
+        "\t.type\t%s, @function\n"
+        "%s:\n"
+        "\tpushq\t%%rbp\n"
+        "\tmovq\t%%rsp, %%rbp\n",
+        name, name, name);
+}
+
+void cg_function_postamble() {
+    fputs("\tmovl $0, %eax\n"
+          "\tpopq\t%rbp\n"
+          "\tret\n",
+          g_outfile);
 }
 
 int cg_load_int(int value) {
@@ -92,30 +105,6 @@ int cg_div(int r1, int r2) {
     free_register(r2);
     return r1;
 }
-
-// int cg_equal(int r1, int r2) {
-//     return cg_compare(r1, r2, "sete");
-// }
-
-// int cg_not_equal(int r1, int r2) {
-//     return cg_compare(r1, r2, "setne");
-// }
-
-// int cg_less_than(int r1, int r2) {
-//     return cg_compare(r1, r2, "setl");
-// }
-
-// int cg_greater_than(int r1, int r2) {
-//     return cg_compare(r1, r2, "setg");
-// }
- 
-// int cg_less_than_or_equal_to(int r1, int r2) {
-//     return cg_compare(r1, r2, "setle");
-// }
-
-// int cg_greater_than_or_equal_to(int r1, int r2) {
-//     return cg_compare(r1, r2, "setge");
-// }
 
 void cg_print_int(int r) {
     fprintf(g_outfile, "\tmovq\t%s, %%rdi\n", reg_list[r]);

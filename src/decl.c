@@ -9,3 +9,17 @@ void var_declaration() {
    gen_glob_sym(g_text);
    semi();
 }
+
+ASTNode *function_declaration() {
+   int nameIndex;
+   ASTNode *tree;
+
+   match(T_VOID, "void");
+   ident();
+   nameIndex = add_glob(g_text);
+   lparen();
+   rparen();
+   tree = compound_statement();
+
+   return make_ast_unary(A_FUNCTION, tree, nameIndex);
+}

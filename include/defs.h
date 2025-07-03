@@ -19,8 +19,10 @@ enum {
     T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
     // No precedence
     T_INTLIT, T_SEMI, T_ASSIGN, T_IDENT,
-    T_PRINT, T_INT, T_IF, T_ELSE,
-    T_WHILE, T_FOR,
+    T_PRINT, T_IF, T_ELSE, T_WHILE, 
+    T_FOR, 
+    // Types
+    T_INT, T_VOID,
 };
 
 typedef struct _Token {
@@ -36,7 +38,7 @@ enum {
     A_INTLIT, 
     A_IDENT, A_LVIDENT, A_ASSIGN,
     A_PRINT, A_GLUE, A_IF,
-    A_WHILE,
+    A_WHILE, A_FUNCTION
 };
 
 typedef struct _ASTNode ASTNode;

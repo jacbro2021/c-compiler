@@ -25,12 +25,15 @@ int main(int argc, char** argv) {
     }
 
     scan(&g_token);
-
     gen_preamble();
-    ASTNode *tree = compound_statement();
-    gen_ast(tree, NOREG, 0);
-    gen_postamble();
 
+    while(1) {
+        ASTNode *tree = function_declaration();
+        gen_ast(tree, NOREG, 0);
+        if (g_token.type == T_EOF) break;
+    }
+
+    gen_postamble();
     fclose(g_outfile);
     fclose(g_infile);
 
