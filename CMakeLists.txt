@@ -17,4 +17,5 @@ add_executable(compiler include/data.h
                       src/misc.c
                       src/sym.c
                       src/decl.c
+                      src/types.c
                       )

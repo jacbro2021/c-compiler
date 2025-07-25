@@ -28,7 +28,6 @@ int gen_ast(ASTNode *n, int reg, int parent_ast_op) {
             gen_function_preamble(g_sym[n->v.id].name);
             gen_ast(n->left, NOREG, n->op);
             gen_function_postamble();
-            gen_free_regs();
             return NOREG;
     }
 
@@ -65,10 +64,10 @@ int gen_ast(ASTNode *n, int reg, int parent_ast_op) {
             return cg_load_int(n->v.int_value);
 
         case A_IDENT:
-            return cg_load_glob(g_sym[n->v.id].name);
+            return cg_load_glob(n->v.id);
 
         case A_LVIDENT:
-            return cg_store_glob(reg, g_sym[n->v.id].name);
+            return cg_store_glob(reg, n->v.id);
 
         case A_ASSIGN:
             return right_reg;
@@ -77,6 +76,9 @@ int gen_ast(ASTNode *n, int reg, int parent_ast_op) {
             gen_print_int(left_reg);
             gen_free_regs();
             return NOREG;
+        
+        case A_WIDEN:
+            return cg_widen_glob(left_reg, n->left->type, n->type);
 
         default:
             fatal_int("Unknown AST operator", n->op);
@@ -107,8 +109,8 @@ void gen_print_int(int r) {
     cg_print_int(r);
 }
 
-void gen_glob_sym(char *s) {
-    cg_glob_sym(s);
+void gen_glob_sym(int id) {
+    cg_glob_sym(id);
 }
 
 static int gen_if_ast(ASTNode *n) {
@@ -123,6 +125,7 @@ static int gen_if_ast(ASTNode *n) {
     gen_free_regs();
 
     gen_ast(n->mid, NOREG, n->op);
+    gen_free_regs();
 
     if (n->right) {
         cg_jump(end_label);
@@ -155,6 +158,8 @@ static int gen_while_ast(ASTNode *n) {
     cg_jump(start_label);
 
     cg_label(end_label);
+
+    return NOREG;
 }
 
 static int gen_label() {

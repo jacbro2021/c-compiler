@@ -73,9 +73,17 @@ int cg_load_int(int value) {
     return r;
 }
 
-int cg_load_glob(char *identifier) {
+int cg_load_glob(int id) {
     int r = alloc_register();
-    fprintf(g_outfile, "\tmovq\t%s(\%%rip), %s\n", identifier, reg_list[r]);
+
+    if (g_sym[id].type == P_CHAR) {
+        fprintf(g_outfile, "\tmovzbq\t%s(\%%rip), %s\n", g_sym[id].name, reg_list[r]);
+    } else if (g_sym[id].type == P_INT) {
+        fprintf(g_outfile, "\tmovq\t%s(\%%rip), %s\n", g_sym[id].name, reg_list[r]);
+    } else {
+        fatal("Unrecognized primitive type in cg_load_glob");
+    }
+
     return r;
 }
 
@@ -112,13 +120,26 @@ void cg_print_int(int r) {
     free_register(r);
 }
 
-int cg_store_glob(int r, char *identifier) {
-    fprintf(g_outfile, "\tmovq\t%s, %s(\%%rip)\n", reg_list[r], identifier);
+int cg_store_glob(int r, int id) {
+    if (g_sym[id].type == P_CHAR) {
+        fprintf(g_outfile, "\tmovb\t%s, %s(\%%rip)\n", breg_list[r], g_sym[id].name);
+    } else if (g_sym[id].type == P_INT) {
+        fprintf(g_outfile, "\tmovq\t%s, %s(\%%rip)\n", reg_list[r], g_sym[id].name);
+    } else {
+        fatal("Unrecognized primitive in cg_store_glob");
+    }
+
     return r;
 }
 
-void cg_glob_sym(char *sym) {
-    fprintf(g_outfile, "\t.comm\t%s,8,8\n", sym);
+void cg_glob_sym(int id) {
+    if (g_sym[id].type == P_CHAR) {
+        fprintf(g_outfile, "\t.comm\t%s,1,1\n", g_sym[id].name);
+    } else if (g_sym[id].type == P_INT) {
+        fprintf(g_outfile, "\t.comm\t%s,8,8\n", g_sym[id].name);
+    } else {
+        fatal("Unrecognized primitive type in cg_glob_sym");
+    }
 }
 
 static char *cmp_list[] = { "sete", "setne", "setl", "setg", "setle", "setge" };
@@ -152,6 +173,10 @@ void cg_jump(int l) {
 
 void cg_label(int l) {
     fprintf(g_outfile, "L%d:\n", l);
+}
+
+int cg_widen_glob(int r, int old_type, int new_type) {
+    return r;
 }
 
 static int alloc_register() {

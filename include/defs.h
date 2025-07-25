@@ -9,7 +9,8 @@
 #define NUM_SYMBOLS 1024
 #define NOREG -1
 
-// Arranged from low to high precedence.
+// token types
+// arranged from low to high precedence
 enum {
     T_EOF,
     T_PLUS, T_MINUS,
@@ -22,7 +23,7 @@ enum {
     T_PRINT, T_IF, T_ELSE, T_WHILE, 
     T_FOR, 
     // Types
-    T_INT, T_VOID,
+    T_INT, T_VOID, T_CHAR,
 };
 
 typedef struct _Token {
@@ -30,6 +31,7 @@ typedef struct _Token {
     int int_value;
 } Token;
 
+// ast ops
 enum {
     A_ADD = 1, A_SUBTRACT,
     A_MULTIPLY, A_DIVIDE,
@@ -38,12 +40,18 @@ enum {
     A_INTLIT, 
     A_IDENT, A_LVIDENT, A_ASSIGN,
     A_PRINT, A_GLUE, A_IF,
-    A_WHILE, A_FUNCTION
+    A_WHILE, A_FUNCTION, A_WIDEN,
+};
+
+// primitive types
+enum {
+    P_NONE, P_VOID, P_INT, P_CHAR
 };
 
 typedef struct _ASTNode ASTNode;
 struct _ASTNode {
     int op;
+    int type;
     ASTNode *left;
     ASTNode *mid;
     ASTNode *right;
@@ -53,6 +61,13 @@ struct _ASTNode {
     } v;
 };
 
+// structural types 
+enum {
+    S_FUNCTION, S_VARIABLE
+};
+
 typedef struct _SymbolTable {
     char *name;
+    int type;       // primitive type
+    int s_type;      // structural type
 } SymbolTable;

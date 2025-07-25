@@ -17,6 +17,7 @@ static int operator_precedence[] = {
     
 ASTNode *binary_expression(int ptp) {
     ASTNode *left, *right;
+    int left_type, right_type;
     int token_type;
 
     left = primary();
@@ -28,7 +29,21 @@ ASTNode *binary_expression(int ptp) {
     while (op_precedence(token_type) > ptp) {
         scan(&g_token);
         right = binary_expression(operator_precedence[token_type]);
-        left = make_ast_node(token_to_operator(token_type), left, NULL, right, 0);
+
+        left_type = left->type;
+        right_type = right->type;
+        if (!type_compatible(&left_type, &right_type, 0)) {
+            fatal("Incompatible types");
+        }
+
+        if (left_type) {
+            make_ast_unary(left_type, right->type, left, 0);
+        } 
+        if (right_type) {
+            make_ast_unary(right_type, left->type, right, 0);
+        }
+
+        left = make_ast_node(token_to_operator(token_type), left->type, left, NULL, right, 0);
         token_type = g_token.type;
         if (g_token.type == T_SEMI || g_token.type == T_RPAREN) {
             return left;
@@ -45,13 +60,17 @@ static ASTNode *primary() {
 
     switch (g_token.type) {
         case T_INTLIT:
-            n = make_ast_leaf(A_INTLIT, g_token.int_value);
+            if (g_token.int_value >= 0 && g_token.int_value < 256) {
+                n = make_ast_leaf(A_INTLIT, P_CHAR, g_token.int_value);
+            } else {
+                n = make_ast_leaf(A_INTLIT, P_INT, g_token.int_value);
+            }
             break;
 
         case T_IDENT:
             id = find_glob(g_text);
             if (id == -1) { fatal_str("Unknown variable", g_text); }  
-            n = make_ast_leaf(A_IDENT, id);
+            n = make_ast_leaf(A_IDENT, g_sym[id].type, id);
             break;
 
         default:

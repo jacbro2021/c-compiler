@@ -16,7 +16,7 @@ int find_glob(char *s) {
     return -1;
 }
 
-int add_glob(char *name) {
+int add_glob(char *name, int type, int s_type) {
     int i;
 
     if ((i = find_glob(name)) != -1) {
@@ -25,6 +25,8 @@ int add_glob(char *name) {
 
     i = new_glob();
     g_sym[i].name = strdup(name);
+    g_sym[i].type = type;
+    g_sym[i].s_type = s_type;
     return i;
 }
 
