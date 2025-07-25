@@ -1,15 +1,9 @@
 #!/bin/bash
 
-# Navigate to the build directory
 cd build || { echo "Failed to cd into build/"; exit 1; }
-
-# Run make
 make || { echo "Make failed"; exit 1; }
-
-# Go back to the parent directory
 cd .. || { echo "Failed to cd back to parent directory"; exit 1; }
 
-# If a test file argument is provided
 if [ -n "$1" ]; then
     TEST_FILE="./test/$1"
     if [ -f "$TEST_FILE" ]; then
@@ -20,6 +14,5 @@ if [ -n "$1" ]; then
         exit 1
     fi
 else
-    # Run the default tests script
-    ./scripts/run_tests || { echo "Tests script failed"; exit 1; }
+    ./scripts/run_tests.sh
 fi
